@@ -9,7 +9,7 @@ namespace Inspiring.BDD.Tests {
 
         public static IEnumerable<object[]> AsyncSteps => Enum
             .GetValues<StepType>()
-            .Where(s => s.ToString().StartsWith("Task"))
+            .Where(s => s.ToString().Contains("Task"))
             .Select(x => new object[] { x });
 
         public static IEnumerable<object[]> SyncSteps => Enum
@@ -155,6 +155,20 @@ namespace Inspiring.BDD.Tests {
                         await action();
                         return 0;
                     }),
+                StepType.ValueTaskOfObject =>
+                    new Func<ValueTask<object?>>(async () => {
+                        await action();
+                        return @return;
+                    }),
+                StepType.ValueTaskOfDisposable => CreateAsyncStep(
+                    StepType.ValueTaskOfObject,
+                    action,
+                    @return: Substitute.For<IDisposable>()),
+                StepType.ValueTaskOfValueType =>
+                    new Func<ValueTask<int>>(async () => {
+                        await action();
+                        return 0;
+                    }),
                 _ => throw new ArgumentOutOfRangeException(nameof(type))
             };
         }
@@ -167,7 +181,10 @@ namespace Inspiring.BDD.Tests {
             Task,
             TaskOfObject,
             TaskOfDisposable,
-            TaskOfValueType
+            TaskOfValueType,
+            ValueTaskOfObject,
+            ValueTaskOfDisposable,
+            ValueTaskOfValueType
         }
     }
 }

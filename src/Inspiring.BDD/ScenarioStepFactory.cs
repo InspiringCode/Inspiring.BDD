@@ -58,6 +58,17 @@ namespace Inspiring.BDD {
         }
 
         /// <summary>
+        /// Adds a synchronous step that returns a value.
+        /// </summary>
+        private void AddStepCore<T>(string text, Func<T> s) {
+            _scenario.AddStep(text, () => {
+                T result = s();
+                if (result is IDisposable d)
+                    _scenario.Use(d);
+            });
+        }
+
+        /// <summary>
         /// Adds an async step that returns a value.
         /// </summary>
         private void AddStepCore<T>(string text, Func<Task<T>> s) {
@@ -75,13 +86,12 @@ namespace Inspiring.BDD {
             _scenario.AddAsyncStep(text, s);
         }
 
-
         /// <summary>
-        /// Adds a synchronous step that returns a value.
+        /// Adds an async ValueTask step that returns a value.
         /// </summary>
-        private void AddStepCore<T>(string text, Func<T> s) {
-            _scenario.AddStep(text, () => {
-                T result = s();
+        private void AddStepCore<T>(string text, Func<ValueTask<T>> s) {
+            _scenario.AddAsyncStep(text, async () => {
+                T result = await s();
                 if (result is IDisposable d)
                     _scenario.Use(d);
             });
